@@ -52,7 +52,7 @@ end
 
 function AirTrafficManager:Collision(args)
 
-	if not IsValid(args.vehicle) then return end
+	if not args or not IsValid(args.vehicle) then return end
 	self.npcs[args.vehicle:GetId()]:SetPosition(args.vehicle:GetSpawnPosition())
 
 end
