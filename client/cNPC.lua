@@ -5,6 +5,7 @@ function AirTrafficNPC:__init(args)
 	self.vehicle = args.entity
 	
 	self.random = math.random(-50, 50)
+	self.timer = Timer()
 
 	self.actor = ClientActor.Create(AssetLocation.Game, {
 		model_id = 98,
@@ -85,6 +86,15 @@ function AirTrafficNPC:Control()
 		self.actor:SetInput(Action.PlaneIncTrust, speed_input)
 	else
 		self.actor:SetInput(Action.PlaneDecTrust, speed_input)
+	end
+
+end
+
+function AirTrafficNPC:CollisionResponse()
+
+	if self.timer:GetMilliseconds() > 500 then
+		self.timer:Restart()
+		Network:Send("Collision", {vehicle = self.vehicle})
 	end
 
 end
