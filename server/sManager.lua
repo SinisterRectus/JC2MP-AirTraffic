@@ -63,9 +63,8 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 
 	local id = args.vehicle:GetId()
 	if not self.npcs[id] then return end
-	
-	local npc = self.npcs[id]
-	Events:Unsubscribe(npc.tick)
+
+	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
 	
 	args.vehicle:SetNetworkValue("P", nil)
