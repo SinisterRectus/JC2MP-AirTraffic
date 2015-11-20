@@ -42,8 +42,6 @@ end
 
 function AirTrafficManager:Collision(args)
 
-	if not self.npcs[args.vehicle:GetId()] then return end
-
 	self.npcs[args.vehicle:GetId()]:SetPosition(args.vehicle:GetSpawnPosition())
 
 end
