@@ -17,9 +17,7 @@ function AirTrafficNPC:__init(args)
 
 	AirTrafficManager.npcs[self:GetId()] = self
 	
-	self.subs = {
-		Events:Subscribe("PostTick", self, self.Load),
-	}
+	self.tick = Events:Subscribe("PostTick", self, self.Load)
 
 end
 
@@ -27,8 +25,8 @@ function AirTrafficNPC:Load()
 
 	if IsValid(self.actor) then
 		self.actor:EnterVehicle(self.vehicle, 0)
-		Events:Unsubscribe(self.subs[1])
-		self.subs[1] = Events:Subscribe("PostTick", self, self.Control)
+		Events:Unsubscribe(self.tick)
+		self.tick = Events:Subscribe("PostTick", self, self.Control)
 	end
 
 end
@@ -150,9 +148,7 @@ end
 
 function AirTrafficNPC:Remove()
 
-	for _, sub in ipairs(self.subs) do
-		Events:Unsubscribe(sub)
-	end
+	Events:Unsubscribe(self.tick)
 
 	self.actor:Remove()
 	AirTrafficManager.npcs[self:GetId()] = nil
