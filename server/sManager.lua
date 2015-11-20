@@ -32,7 +32,7 @@ function AirTrafficManager:ModuleLoad()
 
 	local timer = Timer()
 	
-	for i = 1, 4096 do
+	for i = 1, 512 do
 		self:SpawnRandomNPC()
 	end
 
