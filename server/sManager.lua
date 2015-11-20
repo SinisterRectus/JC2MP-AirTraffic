@@ -32,14 +32,17 @@ function AirTrafficManager:ModuleLoad()
 		[85] = 87, -- Bering I-86DP
 	}
 	
+	local pi = math.pi
+	local random = math.random
+	
 	for i = 1, 512 do
 	
-		local angle = Angle(math.pi * 0.1 * math.random(-10, 10), 0, 0)
+		local angle = Angle(pi * 0.1 * random(-10, 10), 0, 0)
 		local model_id = table.randomvalue(models.civilian)
 	
 		AirTrafficNPC({
 			model_id = model_id,
-			position = Vector3(math.random(-16384, 16384), 0, math.random(-16384, 16384)),
+			position = Vector3(random(-16384, 16384), random(0, 100), random(-16384, 16384)),
 			angle = angle,
 			linear_velocity = angle * Vector3.Forward * speeds[model_id]
 		})
