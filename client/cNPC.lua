@@ -3,8 +3,7 @@ class 'AirTrafficNPC'
 function AirTrafficNPC:__init(args)
 
 	self.vehicle = args.entity
-	
-	self.random = math.random(-50, 50)
+
 	self.timer = Timer()
 
 	self.actor = ClientActor.Create(AssetLocation.Game, {
@@ -38,6 +37,7 @@ function AirTrafficNPC:Control()
 
 	local deg = math.deg
 	local abs = math.abs
+	local clamp = math.clamp
 	
 	local angle = self:GetAngle()
 	local position = self:GetPosition()
@@ -54,13 +54,13 @@ function AirTrafficNPC:Control()
 
 	local target_yaw = deg(math.atan2(d.x, d.z))
 	local target_heading = target_yaw < 0 and -target_yaw or 360 - target_yaw
-	local target_roll = math.clamp(((heading - target_heading + 180) % 360 - 180) * 2.0, -45, 45)
-	local target_pitch = math.clamp(deg(math.asin(-d.y / distance)), -45, 45)
+	local target_roll = clamp(((heading - target_heading + 180) % 360 - 180) * 2.0, -45, 45)
+	local target_pitch = clamp(deg(math.asin(-d.y / distance)), -45, 45)
 	local target_speed = distance / 100 * self:GetTargetLinearVelocity():Length()
 
-	local roll_input = math.clamp(abs(roll - target_roll) * 0.2, 0, 0.7)
-	local pitch_input = math.clamp(abs(pitch - target_pitch) * 0.5, 0, 0.7)
-	local speed_input = math.clamp(abs(speed - target_speed) * 0.05, 0, 0.7)
+	local roll_input = clamp(abs(roll - target_roll) * 0.2, 0, 0.7)
+	local pitch_input = clamp(abs(pitch - target_pitch) * 0.5, 0, 0.7)
+	local speed_input = clamp(abs(speed - target_speed) * 0.05, 0, 0.7)
 		
 	if target_roll < roll then
 		self.actor:SetInput(Action.PlaneTurnRight, roll_input)
@@ -113,15 +113,15 @@ function AirTrafficNPC:GetTargetPosition()
 	local h = Physics:GetTerrainHeight(p)
 	
 	if h > 1500 then
-		p.y = 2500 + self.random
+		p.y = p.y + 2500
 	elseif h > 1000 then
-		p.y = 1500 + self.random
+		p.y = p.y + 1500
 	elseif h > 500 then
-		p.y = 1000 + self.random
+		p.y = p.y + 1000
 	elseif h > 250 then
-		p.y = 750 + self.random
+		p.y = p.y + 750
 	else
-		p.y = 500 + self.random
+		p.y = p.y + 500
 	end
 	
 	return p
