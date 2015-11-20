@@ -26,10 +26,11 @@ function AirTrafficManager:Render()
 end
 
 function AirTrafficManager:VehicleCollide(args)
-	
-	if args.entity.__type == "Vehicle" and self.npcs[args.entity:GetId()] then
-		Network:Send("Collision", {vehicle = args.entity})
-	end
+
+	if args.entity.__type ~= "Vehicle" then return end
+	local id = args.entity:GetId()
+	if not self.npcs[id] then return end
+	self.npcs[id]:CollisionResponse()
 	
 end
 
