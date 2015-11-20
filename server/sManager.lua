@@ -3,25 +3,13 @@ class 'AirTrafficManager'
 function AirTrafficManager:__init()
 	
 	self.npcs = {}
-
-	Events:Subscribe("ModuleLoad", self, self.ModuleLoad)
-	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
-	Events:Subscribe("EntityDespawn", self, self.Unregister)
-	Events:Subscribe("PlayerEnterVehicle", self, self.Unregister)
-	Network:Subscribe("Collision", self, self.Collision)
-
-end
-
-function AirTrafficManager:ModuleLoad()
-
-	local timer = Timer()
-
-	local models = {
+	
+	self.models = {
 		civilian = {39, 51, 59, 81},
 		military = {30, 34, 85},
 	}
-
-	local speeds = {
+	
+	self.speeds = {
 		[24] = 82, -- F-33 DragonFly
 		[30] = 77, -- Si-47 Leopard
 		[34] = 95, -- G9 Eclipse
@@ -31,22 +19,21 @@ function AirTrafficManager:ModuleLoad()
 		[81] = 73, -- Pell Silverbolt 6
 		[85] = 87, -- Bering I-86DP
 	}
-	
-	local pi = math.pi
-	local random = math.random
-	
-	for i = 1, 512 do
-	
-		local angle = Angle(pi * 0.1 * random(-10, 10), 0, 0)
-		local model_id = table.randomvalue(models.civilian)
-	
-		AirTrafficNPC({
-			model_id = model_id,
-			position = Vector3(random(-16384, 16384), random(0, 100), random(-16384, 16384)),
-			angle = angle,
-			linear_velocity = angle * Vector3.Forward * speeds[model_id]
-		})
 
+	Events:Subscribe("ModuleLoad", self, self.ModuleLoad)
+	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
+	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
+	Events:Subscribe("PlayerEnterVehicle", self, self.PlayerEnterVehicle)
+	Network:Subscribe("Collision", self, self.Collision)
+
+end
+
+function AirTrafficManager:ModuleLoad()
+
+	local timer = Timer()
+	
+	for i = 1, 4096 do
+		self:SpawnRandomNPC()
 	end
 
 	print(string.format("Air traffic loaded in %i ms", timer:GetMilliseconds()))
@@ -55,26 +42,36 @@ end
 
 function AirTrafficManager:Collision(args)
 
-	local id = args.vehicle:GetId()
-	if not self.npcs[id] then return end
+	if not self.npcs[args.vehicle:GetId()] then return end
 
-	self.npcs[id]:SetPosition(args.vehicle:GetSpawnPosition())
+	self.npcs[args.vehicle:GetId()]:SetPosition(args.vehicle:GetSpawnPosition())
 
 end
 
-function AirTrafficManager:Unregister(args)
+function AirTrafficManager:EntityDespawn(args)
 
 	if self.unloading then return end
-	args.vehicle = args.vehicle or args.entity.__type == "Vehicle" and args.entity
-	if not args.vehicle then return end
-	local id = args.vehicle:GetId()
+	if args.entity.__type ~= "Vehicle" then return end
+
+	local id = args.entity:GetId()
 	if not self.npcs[id] then return end
 
-	for _, sub in ipairs(self.npcs[id].subs) do
-		Events:Unsubscribe(sub)
-	end
-	
+	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
+
+end
+
+function AirTrafficManager:PlayerEnterVehicle(args)
+
+	local id = args.vehicle:GetId()
+	if not self.npcs[id] then return end
+	
+	local npc = self.npcs[id]
+	Events:Unsubscribe(npc.tick)
+	self.npcs[id] = nil
+	
+	args.vehicle:SetNetworkValue("P", nil)
+	args.vehicle:SetNetworkValue("V", nil)
 	
 	local players = {}
 	for player in args.vehicle:GetStreamedPlayers() do
@@ -82,6 +79,22 @@ function AirTrafficManager:Unregister(args)
 	end
 
 	Network:SendToPlayers(players, "Unregister", {id = id})
+	
+	self:SpawnRandomNPC()
+
+end
+
+function AirTrafficManager:SpawnRandomNPC()
+
+	local angle = Angle(math.pi * 0.1 * math.random(-10, 10), 0, 0)
+	local model_id = table.randomvalue(self.models.civilian)
+
+	AirTrafficNPC({
+		model_id = model_id,
+		position = Vector3(math.random(-16384, 16384), math.random(0, 100), math.random(-16384, 16384)),
+		angle = angle,
+		linear_velocity = angle * Vector3.Forward * self.speeds[model_id]
+	})
 
 end
 
