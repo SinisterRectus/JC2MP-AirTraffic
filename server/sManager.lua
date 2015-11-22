@@ -42,7 +42,8 @@ end
 
 function AirTrafficManager:Collision(args)
 
-	self.npcs[args.vehicle:GetId()]:SetPosition(args.vehicle:GetSpawnPosition())
+	self.npcs[args.id]:Remove()
+	self:SpawnRandomNPC()
 
 end
 
@@ -66,16 +67,16 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 
 	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
-	
-	args.vehicle:SetNetworkValue("P", nil)
-	args.vehicle:SetNetworkValue("V", nil)
-	
+		
 	local players = {}
 	for player in args.vehicle:GetStreamedPlayers() do
 		table.insert(players, player)
 	end
 
 	Network:SendToPlayers(players, "Unregister", {id = id})
+	
+	args.vehicle:SetNetworkValue("P", nil)
+	args.vehicle:SetNetworkValue("V", nil)
 	
 	self:SpawnRandomNPC()
 
