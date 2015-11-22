@@ -3,8 +3,8 @@ class 'AirTrafficNPC'
 function AirTrafficNPC:__init(args)
 
 	self.vehicle = args.entity
-
-	self.timer = Timer()
+	
+	AirTrafficManager.npcs[self:GetId()] = self
 
 	self.actor = ClientActor.Create(AssetLocation.Game, {
 		model_id = 98,
@@ -15,7 +15,7 @@ function AirTrafficNPC:__init(args)
 	self.vehicle:SetLinearVelocity(self:GetTargetLinearVelocity())
 	self.vehicle:SetPosition(self:GetTargetPosition() + self:GetAngle() * Vector3.Backward * 100)
 
-	AirTrafficManager.npcs[self:GetId()] = self
+	self.timer = Timer()
 	
 	self.tick = Events:Subscribe("PostTick", self, self.Load)
 
@@ -92,7 +92,7 @@ function AirTrafficNPC:CollisionResponse()
 
 	if self.timer:GetMilliseconds() > 500 then
 		self.timer:Restart()
-		Network:Send("Collision", {vehicle = self.vehicle})
+		Network:Send("Collision", {id = self:GetId()})
 	end
 
 end
@@ -149,8 +149,7 @@ end
 function AirTrafficNPC:Remove()
 
 	Events:Unsubscribe(self.tick)
-
-	self.actor:Remove()
 	AirTrafficManager.npcs[self:GetId()] = nil
+	self.actor:Remove()
 
 end
