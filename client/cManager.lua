@@ -30,23 +30,27 @@ function AirTrafficManager:VehicleCollide(args)
 	if args.entity.__type ~= "Vehicle" then return end
 	local id = args.entity:GetId()
 	if not self.npcs[id] then return end
+
 	self.npcs[id]:CollisionResponse()
 	
 end
 
 function AirTrafficManager:EntitySpawn(args)
 	
-	if args.entity.__type == "Vehicle" and args.entity:GetValue("P") then
-		AirTrafficNPC(args)
-	end
+	if args.entity.__type ~= "Vehicle" then return end
+	if not args.entity:GetValue("P") then return end
+
+	AirTrafficNPC(args)
 
 end
 
 function AirTrafficManager:EntityDespawn(args)
 
-	if args.entity.__type == "Vehicle" and self.npcs[args.entity:GetId()] then
-		self.npcs[args.entity:GetId()]:Remove()
-	end
+	if args.entity.__type ~= "Vehicle" then return end
+	local id = args.entity:GetId()
+	if not self.npcs[id] then return end
+	
+	self.npcs[id]:Remove()
 
 end
 
