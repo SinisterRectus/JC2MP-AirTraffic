@@ -9,10 +9,10 @@ function AirTrafficNPC:__init(args)
 	self.position = args.position
 	self.linear_velocity = args.linear_velocity
 
-	self.timer = Timer()
+	self.vehicle:SetNetworkValue("P", args.position)
+	self.vehicle:SetNetworkValue("V", args.linear_velocity)
 
-	self.vehicle:SetNetworkValue("P", self.position)
-	self.vehicle:SetNetworkValue("V", self.linear_velocity)
+	self.timer = Timer()
 	
 	self.tick = Events:Subscribe("PostTick", self, self.PostTick)
 
