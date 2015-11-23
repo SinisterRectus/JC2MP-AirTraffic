@@ -18,27 +18,21 @@ function AirTrafficNPC:__init(args)
 end
 
 function AirTrafficNPC:Tick()
-	
-	local dt = self.timer:GetSeconds()
-	
-	if dt > 0.9 * AirTrafficManager.delay then
 		
-		local p = self.position
+	local p = self.position
 
-		if p.x > 16384 then
-			p.x = -16384
-		elseif p.x < -16384 then
-			p.x = 16384
-		elseif p.z > 16384 then
-			p.z = -16384
-		elseif p.z < -16384 then
-			p.z = 16384
-		end
-
-		self:SetPosition(p + self.linear_velocity * dt)
-		self.timer:Restart()
-		
+	if p.x > 16384 then
+		p.x = -16384
+	elseif p.x < -16384 then
+		p.x = 16384
+	elseif p.z > 16384 then
+		p.z = -16384
+	elseif p.z < -16384 then
+		p.z = 16384
 	end
+	
+	self:SetPosition(p + self.linear_velocity * self.timer:GetSeconds())
+	self.timer:Restart()
 
 end
 
