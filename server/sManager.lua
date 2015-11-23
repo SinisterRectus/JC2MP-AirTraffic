@@ -3,7 +3,6 @@ class 'AirTrafficManager'
 function AirTrafficManager:__init()
 
 	self.delay = 0.5
-	self.timer = Timer()
 	
 	self.npcs = {}
 	self.count = 0
@@ -42,7 +41,6 @@ function AirTrafficManager:ModuleLoad()
 	
 	self.co = coroutine.create(function()
 		while true do
-			local first = true
 			for _, npc in pairs(self.npcs) do
 				npc:Tick()
 				coroutine.yield()
