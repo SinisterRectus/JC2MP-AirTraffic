@@ -55,14 +55,10 @@ function AirTrafficManager:ModuleLoad()
 
 end
 
-function AirTrafficManager:PostTick()
+function AirTrafficManager:PostTick(args)
 
-	local dt = self.timer:GetSeconds()
-	if dt > self.delay then
-		self.timer:Restart()
-		for i = 1, math.clamp(dt * self.count / self.delay, 1, self.count) do
-			coroutine.resume(self.co)
-		end
+	for i = 1, math.clamp(args.delta * self.count / self.delay, 1, self.count) do
+		coroutine.resume(self.co)
 	end
 
 end
