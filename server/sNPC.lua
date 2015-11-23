@@ -5,6 +5,7 @@ function AirTrafficNPC:__init(args)
 	self.vehicle = Vehicle.Create(args)
 
 	AirTrafficManager.npcs[self.vehicle:GetId()] = self
+	AirTrafficManager.count = AirTrafficManager.count + 1
 	
 	self.position = args.position
 	self.linear_velocity = args.linear_velocity
@@ -13,34 +14,25 @@ function AirTrafficNPC:__init(args)
 	self.vehicle:SetNetworkValue("V", args.linear_velocity)
 
 	self.timer = Timer()
-	
-	self.tick = Events:Subscribe("PostTick", self, self.PostTick)
 
 end
 
-function AirTrafficNPC:PostTick(args)
+function AirTrafficNPC:Tick()
+	
+	local p = self.position
 
-	local dt = self.timer:GetSeconds()
-	
-	if dt > 0.5 and IsValid(self.vehicle) then
-	
-		self.timer:Restart()
-		
-		local p = self.position
-	
-		if p.x > 16384 then
-			p.x = -16384
-		elseif p.x < -16384 then
-			p.x = 16384
-		elseif p.z > 16384 then
-			p.z = -16384
-		elseif p.z < -16384 then
-			p.z = 16384
-		end
-		
-		self:SetPosition(p + self.linear_velocity * dt)
-
+	if p.x > 16384 then
+		p.x = -16384
+	elseif p.x < -16384 then
+		p.x = 16384
+	elseif p.z > 16384 then
+		p.z = -16384
+	elseif p.z < -16384 then
+		p.z = 16384
 	end
+	
+	self:SetPosition(p + self.linear_velocity * self.timer:GetSeconds())
+	self.timer:Restart()
 
 end
 
@@ -54,8 +46,8 @@ end
 
 function AirTrafficNPC:Remove()
 
-	Events:Unsubscribe(self.tick)
 	AirTrafficManager.npcs[self.vehicle:GetId()] = nil
+	AirTrafficManager.count = AirTrafficManager.count - 1
 	if IsValid(self.vehicle) then self.vehicle:Remove() end
 
 end
