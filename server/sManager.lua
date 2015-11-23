@@ -57,8 +57,21 @@ end
 
 function AirTrafficManager:PostTick(args)
 
-	for i = 1, math.clamp(args.delta * self.count / self.delay, 1, self.count) do
-		coroutine.resume(self.co)
+	local n = math.min(args.delta * self.count / self.delay, self.count)
+	
+	if n > 1 then
+
+		for i = 1, n do
+			coroutine.resume(self.co)
+		end
+		
+	elseif self.timer:GetSeconds() > self.delay then
+			
+		self.timer:Restart()
+		for _, npc in pairs(self.npcs) do
+			npc:Tick()
+		end	
+	
 	end
 
 end
