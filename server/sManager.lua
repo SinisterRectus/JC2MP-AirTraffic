@@ -77,7 +77,6 @@ function AirTrafficManager:EntityDespawn(args)
 	local id = args.entity:GetId()
 	if not self.npcs[id] then return end
 
-	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
 	self.count = self.count - 1
 
@@ -88,7 +87,6 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 	local id = args.vehicle:GetId()
 	if not self.npcs[id] then return end
 
-	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
 	self.count = self.count - 1
 		
