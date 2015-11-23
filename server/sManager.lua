@@ -1,8 +1,11 @@
 class 'AirTrafficManager'
 
 function AirTrafficManager:__init()
+
+	self.delay = 0.5
 	
 	self.npcs = {}
+	self.count = 0
 	
 	self.models = {
 		civilian = {39, 51, 59, 81},
@@ -19,7 +22,7 @@ function AirTrafficManager:__init()
 		[81] = 73, -- Pell Silverbolt 6
 		[85] = 87, -- Bering I-86DP
 	}
-
+	
 	Events:Subscribe("ModuleLoad", self, self.ModuleLoad)
 	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
 	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
@@ -32,11 +35,30 @@ function AirTrafficManager:ModuleLoad()
 
 	local timer = Timer()
 	
-	for i = 1, 512 do
+	for i = 1, 1024 do
 		self:SpawnRandomNPC()
 	end
+	
+	self.co = coroutine.create(function()
+		while true do
+			for _, npc in pairs(self.npcs) do
+				npc:Tick()
+				coroutine.yield()
+			end
+		end
+	end)
+	
+	Events:Subscribe("PostTick", self, self.PostTick)
 
 	print(string.format("Air traffic loaded in %i ms", timer:GetMilliseconds()))
+
+end
+
+function AirTrafficManager:PostTick(args)
+
+	for i = 1, math.min(args.delta, self.delay) * self.count / self.delay do
+		coroutine.resume(self.co)
+	end
 
 end
 
@@ -57,6 +79,7 @@ function AirTrafficManager:EntityDespawn(args)
 
 	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
+	self.count = self.count - 1
 
 end
 
@@ -67,6 +90,7 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 
 	Events:Unsubscribe(self.npcs[id].tick)
 	self.npcs[id] = nil
+	self.count = self.count - 1
 		
 	local players = {}
 	for player in args.vehicle:GetStreamedPlayers() do
