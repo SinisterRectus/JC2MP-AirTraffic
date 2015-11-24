@@ -42,9 +42,7 @@ function AirTrafficManager:ModuleLoad()
 	
 	self.co = coroutine.create(function()
 		while true do
-			local first = true
 			for _, npc in pairs(self.npcs) do
-				if first then print(npc.timer:GetSeconds()); first = nil end
 				npc:Tick()
 				coroutine.yield()
 			end
