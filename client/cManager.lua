@@ -4,7 +4,7 @@ function AirTrafficManager:__init()
 
 	self.npcs = {}
 	
-	-- Events:Subscribe("Render", self, self.Render) -- debug
+	Events:Subscribe("Render", self, self.Tick)
 	Events:Subscribe("EntitySpawn", self, self.EntitySpawn)
 	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
 	Events:Subscribe("VehicleCollide", self, self.VehicleCollide)
@@ -12,16 +12,20 @@ function AirTrafficManager:__init()
 
 end
 
-function AirTrafficManager:Render()
+function AirTrafficManager:Tick(args)
 
 	for _, npc in pairs(self.npcs) do
-		if IsValid(npc) then
-			math.randomseed(npc:GetModelId())
-			local color = Color(math.random(255), math.random(255), math.random(255))
-			Render:DrawCircle(Render:WorldToScreen(npc:GetTargetPosition()), 10, color)
-			Render:DrawCircle(Render:WorldToScreen(npc:GetPosition()), 10, color)
-		end
+		npc:Tick()
 	end
+
+	-- for _, npc in pairs(self.npcs) do
+		-- if IsValid(npc) then
+			-- math.randomseed(npc:GetModelId())
+			-- local color = Color(math.random(255), math.random(255), math.random(255))
+			-- Render:DrawCircle(Render:WorldToScreen(npc:GetTargetPosition()), 10, color)
+			-- Render:DrawCircle(Render:WorldToScreen(npc:GetPosition()), 10, color)
+		-- end
+	-- end
 
 end
 
