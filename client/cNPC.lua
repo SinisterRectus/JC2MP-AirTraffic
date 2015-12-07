@@ -3,8 +3,6 @@ class 'AirTrafficNPC'
 function AirTrafficNPC:__init(args)
 
 	self.vehicle = args.entity
-	
-	AirTrafficManager.npcs[self:GetId()] = self
 
 	self.actor = ClientActor.Create(AssetLocation.Game, {
 		model_id = 98,
@@ -17,7 +15,7 @@ function AirTrafficNPC:__init(args)
 
 	self.timer = Timer()
 	
-	self.tick = Events:Subscribe("PostTick", self, self.Load)
+	self.loader = Events:Subscribe("PostTick", self, self.Load)
 
 end
 
@@ -25,13 +23,14 @@ function AirTrafficNPC:Load()
 
 	if IsValid(self.actor) then
 		self.actor:EnterVehicle(self.vehicle, 0)
-		Events:Unsubscribe(self.tick)
-		self.tick = Events:Subscribe("PostTick", self, self.Control)
+		Events:Unsubscribe(self.loader)
+		self.loader = nil
+		AirTrafficManager.npcs[self:GetId()] = self
 	end
 
 end
 
-function AirTrafficNPC:Control()
+function AirTrafficNPC:Tick()
 
 	local deg = math.deg
 	local abs = math.abs
@@ -148,7 +147,6 @@ end
 
 function AirTrafficNPC:Remove()
 
-	Events:Unsubscribe(self.tick)
 	AirTrafficManager.npcs[self:GetId()] = nil
 	self.actor:Remove()
 
