@@ -10,11 +10,16 @@ function AirTrafficNPC:__init(args)
 		angle = self:GetAngle()
 	})
 	
-	self.vehicle:SetLinearVelocity(self:GetTargetLinearVelocity())
+	self.timers = {
+		collision = Timer(),
+		tick = Timer()
+	}
+
+	self.network_velocity = self.vehicle:GetValue("V")
+	self.network_position = self.vehicle:GetValue("P")
+
 	self.vehicle:SetPosition(self:GetTargetPosition() + self:GetAngle() * Vector3.Backward * 100)
 
-	self.timer = Timer()
-	
 	self.loader = Events:Subscribe("PostTick", self, self.Load)
 
 end
@@ -44,14 +49,12 @@ function AirTrafficNPC:Tick()
 	local distance = d:Length()
 
 	local yaw = deg(angle.yaw)
-	local heading = yaw < 0 and -yaw or 360 - yaw
 	local roll = deg(angle.roll)
 	local pitch = deg(angle.pitch)
 	local speed = self:GetLinearVelocity():Length()
 
 	local target_yaw = deg(math.atan2(d.x, d.z))
-	local target_heading = target_yaw < 0 and -target_yaw or 360 - target_yaw
-	local target_roll = clamp(((heading - target_heading + 180) % 360 - 180) * 2.0, -45, 45)
+	local target_roll = clamp(((target_yaw - yaw + 180) % 360 - 180) * 2.0, -45, 45)
 	local target_pitch = clamp(deg(math.asin(-d.y / distance)), -45, 45)
 	local target_speed = distance / 100 * self:GetTargetLinearVelocity():Length()
 
@@ -89,8 +92,8 @@ end
 
 function AirTrafficNPC:CollisionResponse()
 
-	if self.timer:GetMilliseconds() > 500 then
-		self.timer:Restart()
+	if self.timers.collision:GetMilliseconds() > 500 then
+		self.timers.collision:Restart()
 		Network:Send("Collision", {id = self:GetId()})
 	end
 
@@ -106,7 +109,7 @@ end
 
 function AirTrafficNPC:GetTargetPosition()
 
-	local p = self.vehicle:GetValue("P")
+	local p = self.network_position + self.network_velocity * self.timers.tick:GetSeconds()
 	local h = Physics:GetTerrainHeight(p)
 	
 	if h > 1500 then
@@ -126,7 +129,7 @@ function AirTrafficNPC:GetTargetPosition()
 end
 
 function AirTrafficNPC:GetTargetLinearVelocity()
-	return self.vehicle:GetValue("V")
+	return self.network_velocity
 end
 
 function AirTrafficNPC:GetLinearVelocity()
