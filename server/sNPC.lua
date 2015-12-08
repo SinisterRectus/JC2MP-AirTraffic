@@ -6,9 +6,6 @@ function AirTrafficNPC:__init(args)
 
 	AirTrafficManager.npcs[self.vehicle:GetId()] = self
 	AirTrafficManager.count = AirTrafficManager.count + 1
-	
-	self.position = args.position
-	self.linear_velocity = args.linear_velocity
 
 	self.vehicle:SetNetworkValue("P", args.position)
 	self.vehicle:SetNetworkValue("V", args.linear_velocity)
@@ -19,7 +16,7 @@ end
 
 function AirTrafficNPC:Tick()
 		
-	local p = self.position
+	local p = self.vehicle:GetPosition()
 
 	if p.x > 16384 then
 		p.x = -16384
@@ -31,14 +28,13 @@ function AirTrafficNPC:Tick()
 		p.z = 16384
 	end
 	
-	self:SetPosition(p + self.linear_velocity * self.timer:GetSeconds())
+	self:SetPosition(p + self.vehicle:GetLinearVelocity() * self.timer:GetSeconds())
 	self.timer:Restart()
 
 end
 
 function AirTrafficNPC:SetPosition(position)
 
-	self.position = position
 	self.vehicle:SetStreamPosition(position)
 	self.vehicle:SetNetworkValue("P", position)
 
