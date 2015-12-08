@@ -2,7 +2,7 @@ class 'AirTrafficManager'
 
 function AirTrafficManager:__init()
 
-	self.delay = 0.5 -- seconds
+	self.delay = 2 -- seconds
 	self.timer = Timer()
 	
 	self.npcs = {}
