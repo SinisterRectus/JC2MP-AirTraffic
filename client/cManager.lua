@@ -8,6 +8,7 @@ function AirTrafficManager:__init()
 	Events:Subscribe("EntitySpawn", self, self.EntitySpawn)
 	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
 	Events:Subscribe("VehicleCollide", self, self.VehicleCollide)
+	Events:Subscribe("NetworkObjectValueChange", self, self.ValueChange)
 	Network:Subscribe("Unregister", self, self.Unregister)
 
 end
@@ -32,10 +33,10 @@ end
 function AirTrafficManager:VehicleCollide(args)
 
 	if args.entity.__type ~= "Vehicle" then return end
-	local id = args.entity:GetId()
-	if not self.npcs[id] then return end
+	local npc = self.npcs[args.entity:GetId()]
+	if not npc then return end
 
-	self.npcs[id]:CollisionResponse()
+	npc:CollisionResponse()
 	
 end
 
@@ -51,11 +52,24 @@ end
 function AirTrafficManager:EntityDespawn(args)
 
 	if args.entity.__type ~= "Vehicle" then return end
-	local id = args.entity:GetId()
-	if not self.npcs[id] then return end
+	local npc = self.npcs[args.entity:GetId()]
+	if not npc then return end
 	
-	self.npcs[id]:Remove()
+	npc:Remove()
 
+end
+
+function AirTrafficManager:ValueChange(args)
+
+	if args.object.__type ~= "Vehicle" then return end
+	local npc = self.npcs[args.object:GetId()]
+	if not npc then return end
+	
+	if args.key == "P" then 
+		npc.timers.tick:Restart()
+		npc.network_position = args.value
+	end
+	
 end
 
 function AirTrafficManager:Unregister(args)
