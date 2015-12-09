@@ -72,7 +72,10 @@ end
 
 function AirTrafficManager:Unregister(args)
 
-	self.npcs[args.id]:Remove()
+	local npc = self.npcs[args.id]
+	if not npc then return end
+
+	npc:Remove()
 
 end
 
