@@ -7,15 +7,14 @@ function AirTrafficNPC:__init(args)
 	AirTrafficManager.npcs[self.vehicle:GetId()] = self
 	AirTrafficManager.count = AirTrafficManager.count + 1
 
-	self.vehicle:SetNetworkValue("P", args.position)
-	self.vehicle:SetNetworkValue("V", args.linear_velocity)
+	self.vehicle:SetNetworkValue("P", true)
 
 	self.timer = Timer()
 
 end
 
 function AirTrafficNPC:Tick()
-		
+
 	local p = self.vehicle:GetPosition()
 
 	if p.x > 16384 then
@@ -36,7 +35,19 @@ end
 function AirTrafficNPC:SetPosition(position)
 
 	self.vehicle:SetStreamPosition(position)
-	self.vehicle:SetNetworkValue("P", position)
+	
+	if self:IsStreamed() then
+		self.vehicle:SetNetworkValue("P", position)
+	end
+
+end
+
+function AirTrafficNPC:IsStreamed()
+
+	for player in self.vehicle:GetStreamedPlayers() do
+		return true
+	end
+	return false
 
 end
 
