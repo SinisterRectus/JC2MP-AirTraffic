@@ -76,8 +76,10 @@ end
 
 function AirTrafficManager:Collision(args)
 
-	if not self.npcs[args.id] then return end
-	self.npcs[args.id]:Remove()
+	local npc = self.npcs[args.id]
+	if not npc then return end
+
+	npc:Remove()
 	self:SpawnRandomNPC()
 
 end
