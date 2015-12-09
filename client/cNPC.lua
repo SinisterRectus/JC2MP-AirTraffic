@@ -3,11 +3,15 @@ class 'AirTrafficNPC'
 function AirTrafficNPC:__init(args)
 
 	self.vehicle = args.entity
+	
+	local angle = self:GetAngle()
+	local position = self:GetPosition()
+	local velocity = self:GetLinearVelocity()
 
 	self.actor = ClientActor.Create(AssetLocation.Game, {
 		model_id = 98,
-		position = self:GetPosition(),
-		angle = self:GetAngle()
+		position = position,
+		angle = angle
 	})
 	
 	self.timers = {
@@ -15,10 +19,10 @@ function AirTrafficNPC:__init(args)
 		tick = Timer()
 	}
 
-	self.network_velocity = self.vehicle:GetValue("V")
-	self.network_position = self.vehicle:GetValue("P")
+	self.network_velocity = velocity
+	self.network_position = position
 
-	self.vehicle:SetPosition(self:GetTargetPosition() + self:GetAngle() * Vector3.Backward * 100)
+	self.vehicle:SetPosition(self:GetTargetPosition() + angle * Vector3.Backward * 100)
 
 	self.loader = Events:Subscribe("PostTick", self, self.Load)
 
