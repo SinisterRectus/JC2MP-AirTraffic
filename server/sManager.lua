@@ -104,16 +104,8 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 
 	self.npcs[id] = nil
 	self.count = self.count - 1
-		
-	local players = {}
-	for player in args.vehicle:GetStreamedPlayers() do
-		table.insert(players, player)
-	end
-
-	Network:SendToPlayers(players, "Unregister", {id = id})
 	
 	args.vehicle:SetNetworkValue("P", nil)
-	args.vehicle:SetNetworkValue("V", nil)
 	
 	self:SpawnRandomNPC()
 
