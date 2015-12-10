@@ -10,7 +10,6 @@ function AirTrafficManager:__init()
 	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
 	Events:Subscribe("VehicleCollide", self, self.VehicleCollide)
 	Events:Subscribe("NetworkObjectValueChange", self, self.ValueChange)
-	Network:Subscribe("Unregister", self, self.Unregister)
 
 end
 
@@ -64,19 +63,14 @@ function AirTrafficManager:ValueChange(args)
 	if not npc then return end
 	
 	if args.key == "P" then 
-		npc.timers.tick:Restart()
-		npc.network_position = args.value
+		if args.value then
+			npc.timers.tick:Restart()
+			npc.network_position = args.value
+		else
+			npc:Remove()
+		end
 	end
 	
-end
-
-function AirTrafficManager:Unregister(args)
-
-	local npc = self.npcs[args.id]
-	if not npc then return end
-
-	npc:Remove()
-
 end
 
 function AirTrafficManager:ModuleUnload()
