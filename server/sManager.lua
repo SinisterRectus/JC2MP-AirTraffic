@@ -28,6 +28,7 @@ function AirTrafficManager:__init()
 	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
 	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
 	Events:Subscribe("PlayerEnterVehicle", self, self.PlayerEnterVehicle)
+	Events:Subscribe("PlayerExitVehicle", self, self.PlayerExitVehicle)
 	Network:Subscribe("Collision", self, self.Collision)
 
 end
@@ -99,6 +100,7 @@ end
 
 function AirTrafficManager:PlayerEnterVehicle(args)
 
+	if not args.is_driver then return end
 	local id = args.vehicle:GetId()
 	if not self.npcs[id] then return end
 
@@ -106,8 +108,17 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 	self.count = self.count - 1
 	
 	args.vehicle:SetNetworkValue("P", nil)
+	args.vehicle:SetValue("Hijacked", true)
 	
 	self:SpawnRandomNPC()
+
+end
+
+function AirTrafficManager:PlayerExitVehicle(args)
+
+	if not args.vehicle:GetValue("Hijacked") then return end
+	if #args.vehicle:GetOccupants() > 0 then return end
+	args.vehicle:Remove()
 
 end
 
