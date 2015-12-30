@@ -15,7 +15,6 @@ function AirTrafficNPC:__init(args)
 	})
 	
 	self.timers = {
-		loader = Timer(),
 		collision = Timer(),
 		tick = Timer()
 	}
@@ -31,14 +30,16 @@ end
 
 function AirTrafficNPC:Load()
 
-	if IsValid(self.actor) and IsValid(self.vehicle) then
+	if IsValid(self.vehicle) then
+	
+		if IsValid(self.actor) then
+			self.actor:EnterVehicle(self.vehicle, 0)
+			Events:Unsubscribe(self.loader)
+			self.loader = nil
+			AirTrafficManager.npcs[self:GetId()] = self
+		end
 
-		self.actor:EnterVehicle(self.vehicle, 0)
-		Events:Unsubscribe(self.loader)
-		self.loader = nil
-		AirTrafficManager.npcs[self:GetId()] = self
-
-	elseif self.timers.loader:GetSeconds() > 5 then
+	else
 	
 		self.actor:Remove()
 		Events:Unsubscribe(self.loader)
