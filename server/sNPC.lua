@@ -16,7 +16,6 @@ end
 function AirTrafficNPC:Tick()
 
 	local vehicle = self.vehicle
-
 	local p = vehicle:GetPosition()
 
 	if p.x > 16384 then
@@ -29,24 +28,7 @@ function AirTrafficNPC:Tick()
 		p.z = 16384
 	end
 	
-	p = p + vehicle:GetLinearVelocity() * self.timer:GetSeconds()
-	
-	vehicle:SetStreamPosition(p)
-	
-	if self:IsStreamed() then
-
-		vehicle:SetNetworkValue("P", p)
-
-		local health = vehicle:GetHealth()
-		if health == 0 then
-			self:Remove()
-			AirTrafficManager:SpawnRandomNPC()
-		elseif health <= 0.2 then
-			vehicle:SetHealth(0)
-		end
-
-	end
-	
+	self:SetPosition(p + vehicle:GetLinearVelocity() * self.timer:GetSeconds())
 	self.timer:Restart()
 
 end
