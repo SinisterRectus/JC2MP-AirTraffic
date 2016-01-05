@@ -21,8 +21,13 @@ function AirTrafficNPC:__init(args)
 
 	self.network_velocity = velocity
 	self.network_position = position
+	self.network_velocity_norm = velocity:Normalized()
+	self.terrain_height = self:GetMaxTerrainHeight()
 
-	self.vehicle:SetPosition(self:GetTargetPosition() + angle * Vector3.Backward * 100)
+	self.speed = settings.speeds[self:GetModelId()]
+	self.follow_distance = self.speed * settings.delay * 0.5
+
+	self.vehicle:SetPosition(self:GetTargetPosition() - self.network_velocity_norm * self.follow_distance)
 
 	self.loader = Events:Subscribe("PostTick", self, self.Load)
 
@@ -49,58 +54,40 @@ function AirTrafficNPC:Load()
 
 end
 
-function AirTrafficNPC:Tick()
+function AirTrafficNPC:Update(position)
 
-	local deg = math.deg
-	local abs = math.abs
-	local clamp = math.clamp
+	self.timers.tick:Restart()
+	self.network_position = position
+	self.terrain_height = self:GetMaxTerrainHeight()
+
+end
+
+function AirTrafficNPC:Tick(dt)
+
+	local limit = 0.25 * math.pi
+	local p1 = self:GetPosition()
+	local p2 = self:GetTargetPosition()
+	local p3 = p2 - self.network_velocity_norm * self.follow_distance
+
+	local q_dir = p2 - p1
+	local q_dp = q_dir:Length()
+
+	local q1 = self:GetAngle(); q1.roll = 0
+	local q2 = Angle(math.atan2(-q_dir.x, -q_dir.z), math.clamp(math.asin(q_dir.y / q_dp), -limit, limit), 0)
+	local dq = q1:Delta(q2)
+
+	local q = (IsNaN(dq) or dq == 0) and q1 or Angle.Slerp(q1, q2, 0.2 * dt / dq)
+	self.vehicle:SetAngle(q)
 	
-	local angle = self:GetAngle()
-	local position = self:GetPosition()
-	local target_position = self:GetTargetPosition()
-
-	local d = position - target_position
-	local distance = d:Length()
-
-	local yaw = deg(angle.yaw)
-	local roll = deg(angle.roll)
-	local pitch = deg(angle.pitch)
-	local speed = self:GetLinearVelocity():Length()
-
-	local target_yaw = deg(math.atan2(d.x, d.z))
-	local target_roll = clamp(((target_yaw - yaw + 180) % 360 - 180) * 2.0, -45, 45)
-	local target_pitch = clamp(deg(math.asin(-d.y / distance)), -45, 45)
-	local target_speed = distance / 100 * self:GetTargetLinearVelocity():Length()
-
-	local roll_input = clamp(abs(roll - target_roll) * 0.2, 0, 0.7)
-	local pitch_input = clamp(abs(pitch - target_pitch) * 0.5, 0, 0.7)
-	local speed_input = clamp(abs(speed - target_speed) * 0.05, 0, 0.7)
-		
-	if target_roll < roll then
-		self.actor:SetInput(Action.PlaneTurnRight, roll_input)
-	else
-		self.actor:SetInput(Action.PlaneTurnLeft, roll_input)
-	end
+	local v_dir = p3 - p1
+	local v_dp = v_dir:Length()
 	
-	if abs(roll) < 60 then
-		if target_pitch > pitch then
-			self.actor:SetInput(Action.PlanePitchUp, pitch_input)
-		else
-			self.actor:SetInput(Action.PlanePitchDown, pitch_input)
-		end
-	elseif abs(roll) > 120 then
-		if target_pitch > pitch then
-			self.actor:SetInput(Action.PlanePitchDown, pitch_input)
-		else
-			self.actor:SetInput(Action.PlanePitchUp, pitch_input)
-		end
-	end
+	local v1 = self:GetLinearVelocity()
+	local v2 = q * Vector3(0, 0, -self.speed) + math.min(v_dp, 0.5 * self.speed) * v_dir / v_dp
+	local dv = v1:Distance(v2)
 	
-	if target_speed > speed then
-		self.actor:SetInput(Action.PlaneIncTrust, speed_input)
-	else
-		self.actor:SetInput(Action.PlaneDecTrust, speed_input)
-	end
+	local v = (IsNaN(dv) or dv == 0) and v1 or math.lerp(v1, v2, 10 * dt / dv)
+	self.vehicle:SetLinearVelocity(v)
 
 end
 
@@ -124,26 +111,29 @@ end
 function AirTrafficNPC:GetTargetPosition()
 
 	local p = self.network_position + self.network_velocity * self.timers.tick:GetSeconds()
-	local h = Physics:GetTerrainHeight(p)
-	
-	if h > 1500 then
-		p.y = p.y + 2500
-	elseif h > 1000 then
-		p.y = p.y + 1500
-	elseif h > 500 then
-		p.y = p.y + 1000
-	elseif h > 250 then
-		p.y = p.y + 750
-	else
-		p.y = p.y + 500
-	end
-	
+
+	p.y = p.y + self.terrain_height + 500
 	return p
 
 end
 
-function AirTrafficNPC:GetTargetLinearVelocity()
-	return self.network_velocity
+function AirTrafficNPC:GetMaxTerrainHeight()
+
+	local p = self:GetPosition()
+	local v = self.network_velocity_norm
+	local h = 200
+
+	for i = 0, 512, 16 do
+		local p = p + v * i
+		h = math.max(h, Physics:GetTerrainHeight(p + v * i))
+	end
+
+	return h
+
+end
+
+function AirTrafficNPC:GetNetworkPosition()
+	return self:GetTargetPosition() - self.network_velocity * self.timers.tick:GetSeconds()
 end
 
 function AirTrafficNPC:GetLinearVelocity()
