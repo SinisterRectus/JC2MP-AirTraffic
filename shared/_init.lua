@@ -1,5 +1,5 @@
 settings = {
-	debug = true,
+	debug = false,
 	delay = 2, -- server update interval in seconds
 	count = 1024, -- number of planes to initially spawn
 	speeds = { -- plane cruise speeds in m/s
