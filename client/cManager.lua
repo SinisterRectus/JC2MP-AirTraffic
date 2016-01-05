@@ -3,7 +3,6 @@ class 'AirTrafficManager'
 function AirTrafficManager:__init()
 
 	self.npcs = {}
-	self.debug = false
 	
 	Events:Subscribe("Render", self, self.PostTick)
 	Events:Subscribe("EntitySpawn", self, self.EntitySpawn)
@@ -13,15 +12,16 @@ function AirTrafficManager:__init()
 
 end
 
-function AirTrafficManager:PostTick()
+function AirTrafficManager:PostTick(args)
 
 	for _, npc in pairs(self.npcs) do
-		npc:Tick()
-		if self.debug then
+		npc:Tick(args.delta)
+		if settings.debug then
 			math.randomseed(npc:GetModelId())
 			local color = Color(math.random(255), math.random(255), math.random(255))
-			Render:DrawCircle(Render:WorldToScreen(npc:GetTargetPosition()), 10, color)
+			Render:DrawCircle(Render:WorldToScreen(npc:GetTargetPosition()), 8, color)
 			Render:DrawCircle(Render:WorldToScreen(npc:GetPosition()), 10, color)
+			Render:DrawCircle(Render:WorldToScreen(npc:GetNetworkPosition()), 9, color)
 		end
 	end
 
@@ -64,8 +64,7 @@ function AirTrafficManager:ValueChange(args)
 	
 	if args.key == "P" then 
 		if args.value then
-			npc.timers.tick:Restart()
-			npc.network_position = args.value
+			npc:Update(args.value)
 		else
 			npc:Remove()
 		end
