@@ -112,7 +112,7 @@ function AirTrafficNPC:GetTargetPosition()
 
 	local p = self.network_position + self.network_velocity * self.timers.tick:GetSeconds()
 
-	p.y = p.y + self.terrain_height + 500
+	p.y = p.y + self.terrain_height + 200
 	return p
 
 end
