@@ -64,6 +64,8 @@ end
 
 function AirTrafficNPC:Tick(dt)
 
+	if self.vehicle:GetHealth() <= 0.2 then return end
+
 	local limit = 0.25 * math.pi
 	local p1 = self:GetPosition()
 	local p2 = self:GetTargetPosition()
@@ -111,7 +113,6 @@ end
 function AirTrafficNPC:GetTargetPosition()
 
 	local p = self.network_position + self.network_velocity * self.timers.tick:GetSeconds()
-
 	p.y = p.y + self.terrain_height + 200
 	return p
 
@@ -124,7 +125,6 @@ function AirTrafficNPC:GetMaxTerrainHeight()
 	local h = 200
 
 	for i = 0, 512, 16 do
-		local p = p + v * i
 		h = math.max(h, Physics:GetTerrainHeight(p + v * i))
 	end
 
