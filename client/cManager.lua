@@ -40,7 +40,7 @@ end
 function AirTrafficManager:EntitySpawn(args)
 	
 	if args.entity.__type ~= "Vehicle" then return end
-	if not args.entity:GetValue("P") then return end
+	if not args.entity:GetValue("ATP") then return end
 
 	AirTrafficNPC(args)
 
@@ -62,7 +62,7 @@ function AirTrafficManager:ValueChange(args)
 	local npc = self.npcs[args.object:GetId()]
 	if not npc then return end
 	
-	if args.key == "P" then 
+	if args.key == "ATP" then 
 		if args.value then
 			npc:Update(args.value)
 		else
