@@ -6,6 +6,7 @@ function AirTrafficManager:__init()
 	
 	self.npcs = {}
 	self.count = 0
+	self.removals = {}
 	
 	Events:Subscribe("ModuleLoad", self, self.ModuleLoad)
 	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
@@ -43,6 +44,7 @@ function AirTrafficManager:PostTick(args)
 
 	local count = self.count
 	local delay = settings.delay
+	if count == 0 or delay == 0 then return end
 
 	local n = math.min(args.delta * count / delay, count)
 	
@@ -58,6 +60,10 @@ function AirTrafficManager:PostTick(args)
 		coroutine.resume(self.co)
 	
 	end
+	
+	if #self.removals > 0 then
+		table.remove(self.removals, 1):Remove()
+	end
 
 end
 
@@ -66,7 +72,7 @@ function AirTrafficManager:Collision(args)
 	local npc = self.npcs[args.id]
 	if not npc then return end
 
-	npc:Remove()
+	npc.vehicle:SetHealth(0)
 
 end
 
@@ -92,7 +98,7 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 	self.npcs[id] = nil
 	self.count = self.count - 1
 	
-	args.vehicle:SetNetworkValue("P", nil)
+	args.vehicle:SetNetworkValue("ATP", nil)
 	args.vehicle:SetValue("Hijacked", true)
 	
 	self:SpawnRandomNPC()
