@@ -7,9 +7,9 @@ function AirTrafficNPC:__init(args)
 	AirTrafficManager.npcs[self.vehicle:GetId()] = self
 	AirTrafficManager.count = AirTrafficManager.count + 1
 
-	self.vehicle:SetNetworkValue("P", true)
+	self.vehicle:SetNetworkValue("ATP", true)
 
-	self.timer = Timer()
+	self.timers = {tick = Timer()}
 
 end
 
@@ -28,18 +28,27 @@ function AirTrafficNPC:Tick()
 		p.z = 16384
 	end
 	
-	self:SetPosition(p + vehicle:GetLinearVelocity() * self.timer:GetSeconds())
-	self.timer:Restart()
-
-end
-
-function AirTrafficNPC:SetPosition(position)
-
-	self.vehicle:SetStreamPosition(position)
+	p = p + vehicle:GetLinearVelocity() * self.timers.tick:GetSeconds()
+	vehicle:SetStreamPosition(p)
 	
 	if self:IsStreamed() then
-		self.vehicle:SetNetworkValue("P", position)
+		
+		vehicle:SetNetworkValue("ATP", p)
+		
+		if not self.destroyed and vehicle:GetHealth() <= 0.2 then
+				
+			if not self.timers.removal then
+				self.timers.removal = Timer()
+			elseif self.timers.removal:GetSeconds() > 5 then
+				self.destroyed = true
+				table.insert(AirTrafficManager.removals, self)
+			end
+
+		end
+		
 	end
+
+	self.timers.tick:Restart()
 
 end
 
