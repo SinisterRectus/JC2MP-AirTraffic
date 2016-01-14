@@ -63,6 +63,7 @@ function AirTrafficManager:PostTick(args)
 	
 	if #self.removals > 0 then
 		table.remove(self.removals, 1):Remove()
+		self:SpawnRandomNPC()
 	end
 
 end
