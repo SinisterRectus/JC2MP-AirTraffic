@@ -100,7 +100,7 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 	self.count = self.count - 1
 	
 	args.vehicle:SetNetworkValue("ATP", nil)
-	args.vehicle:SetValue("Hijacked", true)
+	args.vehicle:SetValue("ATHijacked", true)
 	
 	self:SpawnRandomNPC()
 
@@ -108,7 +108,7 @@ end
 
 function AirTrafficManager:PlayerExitVehicle(args)
 
-	if not args.vehicle:GetValue("Hijacked") then return end
+	if not args.vehicle:GetValue("ATHijacked") then return end
 	if #args.vehicle:GetOccupants() > 0 then return end
 	args.vehicle:Remove()
 
