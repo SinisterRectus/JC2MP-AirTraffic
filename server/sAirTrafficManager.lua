@@ -3,11 +3,11 @@ class 'AirTrafficManager'
 function AirTrafficManager:__init()
 
 	self.timer = Timer()
-	
+
 	self.npcs = {}
 	self.count = 0
 	self.removals = {}
-	
+
 	Events:Subscribe("ModuleLoad", self, self.ModuleLoad)
 	Events:Subscribe("ModuleUnload", self, self.ModuleUnload)
 	Events:Subscribe("EntityDespawn", self, self.EntityDespawn)
@@ -20,20 +20,28 @@ end
 function AirTrafficManager:ModuleLoad()
 
 	local timer = Timer()
-	
+
 	for i = 1, settings.count do
 		self:SpawnRandomNPC()
 	end
-	
+
 	self.co = coroutine.create(function()
 		while true do
-			for _, npc in pairs(self.npcs) do
-				npc:Tick()
+			if self.count == 0 then
 				coroutine.yield()
+			else
+				for _, npc in pairs(self.npcs) do
+					npc:Tick()
+					coroutine.yield()
+				end
+			end
+			while #self.removals > 0 do
+				table.remove(self.removals):Remove()
+				self:SpawnRandomNPC()
 			end
 		end
 	end)
-	
+
 	Events:Subscribe("PostTick", self, self.PostTick)
 
 	print(string.format("Air traffic loaded in %i ms", timer:GetMilliseconds()))
@@ -47,23 +55,18 @@ function AirTrafficManager:PostTick(args)
 	if count == 0 or delay == 0 then return end
 
 	local n = math.min(args.delta * count / delay, count)
-	
+
 	if n > 1 then
 
 		for i = 1, n do
-			coroutine.resume(self.co)
+			assert(coroutine.resume(self.co))
 		end
-		
+
 	elseif self.timer:GetSeconds() > delay / count then
 
 		self.timer:Restart()
-		coroutine.resume(self.co)
-	
-	end
-	
-	if #self.removals > 0 then
-		table.remove(self.removals, 1):Remove()
-		self:SpawnRandomNPC()
+		assert(coroutine.resume(self.co))
+
 	end
 
 end
@@ -98,10 +101,10 @@ function AirTrafficManager:PlayerEnterVehicle(args)
 
 	self.npcs[id] = nil
 	self.count = self.count - 1
-	
+
 	args.vehicle:SetNetworkValue("ATP", nil)
 	args.vehicle:SetValue("ATHijacked", true)
-	
+
 	self:SpawnRandomNPC()
 
 end
@@ -118,7 +121,7 @@ function AirTrafficManager:SpawnRandomNPC()
 
 	local angle = Angle(math.pi * 0.1 * math.random(-10, 10), 0, 0)
 	local model_id = table.randomvalue(settings.pool)
-	
+
 	AirTrafficNPC({
 		model_id = model_id,
 		position = Vector3(math.random(-16384, 16384), math.random(0, 100), math.random(-16384, 16384)),
